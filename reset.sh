@@ -18,8 +18,9 @@
 #           dbt_packages/ — and the implement-renamed ODPS is restored to its
 #           initial name.
 #   cloud : Snowflake database DP_CLEARANCE_OPTIMIZER (dropped)
-#   platform : the `dataProductBuilder` customProperty (initial ODPS re-published)
-#              and every access agreement of this consumer data product
+#   platform : the `dataProductBuilder` customProperty (initial ODPS re-published),
+#              every access agreement of this consumer data product, and every
+#              OpenLineage event emitted for it (needs an org-scoped API key)
 #   profile  : the `shelf_warmer_clearance_optimizer` dbt profile in ~/.dbt/profiles.yml
 #   memory   : ~/.claude/projects/<this-repo-slug>/
 #
@@ -111,7 +112,7 @@ fi
 
 # ============================================================================
 echo
-echo "==> 2/5  Revert platform state (un-stamp data product, remove access agreements)"
+echo "==> 2/5  Revert platform state (un-stamp data product, remove access agreements, delete lineage)"
 ED="$(resolve_cli entropy-data)"
 if [[ -z "$ED" ]]; then
   echo "    entropy-data CLI not available — skipping platform revert."
@@ -143,6 +144,35 @@ else
     done
   else
     echo "    Skipped access-agreement removal."
+  fi
+
+  # Delete every OpenLineage event emitted for this data product. Keyed by job
+  # name (namespace + name), which is stable across runs, so stale jobs from
+  # earlier implementations (e.g. renamed stg_*/int_* models) are cleaned up
+  # too — not just the most recent run. `lineage delete` has no
+  # --data-product-id filter, so we resolve the job set from `lineage list`.
+  # NOTE: deleting lineage requires an org-scoped API key; user-scoped keys get
+  # HTTP 403, in which case this is reported and skipped without failing reset.
+  jobs=()
+  while IFS= read -r job; do [[ -n "$job" ]] && jobs+=("$job"); done < <(
+    $ED lineage list --data-product-id "$DATA_PRODUCT_ID" -o json 2>/dev/null \
+      | jq -r '.[] | .job.namespace + "\t" + .job.name' 2>/dev/null | sort -u || true
+  )
+  if [[ ${#jobs[@]} -eq 0 ]]; then
+    echo "    No OpenLineage events to remove."
+  elif confirm "    Delete OpenLineage events for ${#jobs[@]} job(s) of ${DATA_PRODUCT_ID}?"; then
+    for job in "${jobs[@]}"; do
+      ns="${job%%$'\t'*}"; name="${job#*$'\t'}"
+      echo "    Deleting lineage job ${ns}/${name}"
+      if [[ $DRY_RUN -eq 1 ]]; then
+        echo "[dry-run] $ED lineage delete --job-namespace $ns --job-name $name"
+      elif ! $ED lineage delete --job-namespace "$ns" --job-name "$name" >/dev/null 2>&1; then
+        echo "    WARNING: could not delete lineage for '${name}'."
+        echo "             Lineage deletion needs an org-scoped API key (user-scoped keys get HTTP 403)."
+      fi
+    done
+  else
+    echo "    Skipped lineage removal."
   fi
 fi
 
