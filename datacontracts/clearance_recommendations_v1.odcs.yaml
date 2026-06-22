@@ -27,24 +27,36 @@ schema:
       primaryKey: true
       examples:
         - "SKU-100345"
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/sku
     - name: ARTICLE_NAME
       description: Human-readable article name.
       logicalType: string
       physicalType: VARCHAR
       examples:
         - "Merino Wool Scarf"
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/product.title
     - name: BRAND_NAME
       description: Brand of the article.
       logicalType: string
       physicalType: VARCHAR
       examples:
         - "NordicKnit"
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/product.brand
     - name: COLOR
       description: Article color.
       logicalType: string
       physicalType: VARCHAR
       examples:
         - "Charcoal"
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/article.color
     - name: LAST_SALE_TIMESTAMP
       description: Timestamp of the most recent recorded sale. NULL if never sold.
       logicalType: timestamp
@@ -63,6 +75,9 @@ schema:
       physicalType: NUMBER(12,2)
       examples:
         - 49.90
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/article.list-price
     - name: CURRENT_EFFECTIVE_PRICE
       description: Current actual selling price after existing discounts.
       logicalType: number
@@ -75,6 +90,9 @@ schema:
       physicalType: CHAR(3)
       examples:
         - "EUR"
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/order.currency
     - name: RECOMMENDED_DISCOUNT_PCT
       description: Recommended discount depth off the current effective price, as a percentage (0-100).
       logicalType: number
@@ -112,6 +130,9 @@ schema:
       required: true
       examples:
         - "2026-06-22T06:05:23Z"
+      authoritativeDefinitions:
+        - type: semantics
+          url: https://demo.entropy-data.com/demo374354499206/semantics/main/processed_timestamp
 
 team:
   name: controlling-team
