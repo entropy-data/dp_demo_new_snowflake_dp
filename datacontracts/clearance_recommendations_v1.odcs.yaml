@@ -1,0 +1,128 @@
+apiVersion: v3.1.0
+kind: DataContract
+
+id: clearance-recommendations-v1
+name: Clearance Recommendations
+version: 1.0.0
+status: draft
+
+description:
+  usage: analytics
+  purpose: >-
+    Per-SKU clearance price recommendations for slow-moving inventory.
+    Combines slow-mover detection, current pricing and article master data to
+    suggest a discount depth that clears dead stock while protecting margin.
+
+schema:
+- name: CLEARANCE_RECOMMENDATIONS
+  physicalType: table
+  businessName: Clearance Recommendations
+  description: One row per shelf-warmer SKU with a recommended clearance action.
+  properties:
+    - name: SKU
+      description: Stock keeping unit. Joins to Shelf Warmers, Prices and Articles.
+      logicalType: string
+      physicalType: VARCHAR
+      required: true
+      primaryKey: true
+      examples:
+        - "SKU-100345"
+    - name: ARTICLE_NAME
+      description: Human-readable article name.
+      logicalType: string
+      physicalType: VARCHAR
+      examples:
+        - "Merino Wool Scarf"
+    - name: BRAND_NAME
+      description: Brand of the article.
+      logicalType: string
+      physicalType: VARCHAR
+      examples:
+        - "NordicKnit"
+    - name: COLOR
+      description: Article color.
+      logicalType: string
+      physicalType: VARCHAR
+      examples:
+        - "Charcoal"
+    - name: LAST_SALE_TIMESTAMP
+      description: Timestamp of the most recent recorded sale. NULL if never sold.
+      logicalType: timestamp
+      physicalType: TIMESTAMP_TZ
+      examples:
+        - "2025-09-01T12:00:00Z"
+    - name: DAYS_SINCE_LAST_SALE
+      description: Whole days since the last sale. NULL if the article was never sold.
+      logicalType: integer
+      physicalType: NUMBER
+      examples:
+        - 294
+    - name: CURRENT_LIST_PRICE
+      description: Current official catalog price.
+      logicalType: number
+      physicalType: NUMBER(12,2)
+      examples:
+        - 49.90
+    - name: CURRENT_EFFECTIVE_PRICE
+      description: Current actual selling price after existing discounts.
+      logicalType: number
+      physicalType: NUMBER(12,2)
+      examples:
+        - 49.90
+    - name: CURRENCY_CODE
+      description: ISO 4217 currency code of the prices.
+      logicalType: string
+      physicalType: CHAR(3)
+      examples:
+        - "EUR"
+    - name: RECOMMENDED_DISCOUNT_PCT
+      description: Recommended discount depth off the current effective price, as a percentage (0-100).
+      logicalType: number
+      physicalType: NUMBER(5,2)
+      required: true
+      examples:
+        - 30.00
+    - name: RECOMMENDED_PRICE
+      description: Effective price after applying the recommended discount.
+      logicalType: number
+      physicalType: NUMBER(12,2)
+      required: true
+      examples:
+        - 34.93
+    - name: CLEARANCE_TIER
+      description: >-
+        Categorical clearance action derived from urgency.
+        One of NONE, LIGHT, MODERATE, AGGRESSIVE, CLEARANCE.
+      logicalType: string
+      physicalType: VARCHAR
+      required: true
+      examples:
+        - "MODERATE"
+    - name: URGENCY_SCORE
+      description: Clearance urgency from 0 (no action) to 100 (clear immediately).
+      logicalType: number
+      physicalType: NUMBER(5,2)
+      required: true
+      examples:
+        - 72.00
+    - name: PROCESSING_TIMESTAMP
+      description: Timestamp when this recommendation was computed by the dbt run.
+      logicalType: timestamp
+      physicalType: TIMESTAMP_TZ
+      required: true
+      examples:
+        - "2026-06-22T06:05:23Z"
+
+team:
+  name: controlling-team
+
+servers:
+  - server: production
+    type: snowflake
+    account: LMTRWXS-XN14859
+    database: DP_CLEARANCE_OPTIMIZER
+    schema: OP_CLEARANCE_RECOMMENDATIONS_V1
+
+roles:
+  - role: controlling
+    access: read

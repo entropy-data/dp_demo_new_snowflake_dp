@@ -1,0 +1,81 @@
+apiVersion: "v1.0.0"
+kind: "DataProduct"
+id: "shelf-warmer-clearance-optimizer"
+name: "Shelf Warmer Clearance Optimizer"
+status: "draft"
+domain: "controlling"
+description:
+  purpose: >-
+    Recommends a per-SKU clearance discount depth to sell off slow-moving
+    inventory while protecting margin. Combines slow-mover detection, current
+    pricing and article master data — all sourced from Snowflake.
+team:
+  name: "controlling-team"
+tags:
+- "demo"
+- "platform/snowflake"
+- "usecases/clearance-optimization"
+outputPorts:
+- name: "clearance-recommendations-v1"
+  version: "1"
+  description: "Per-SKU recommended clearance discount, price and clearance urgency."
+  type: "snowflake"
+  contractId: "clearance-recommendations-v1"
+  authoritativeDefinitions:
+  - type: "Snowflake WebUI"
+    url: "https://example.com"
+  customProperties:
+  - property: "displayName"
+    value: "Clearance Recommendations Snowflake v1"
+  - property: "platformRole"
+    value: "co_clearance_recommendations_v1_role"
+  - property: "status"
+    value: "active"
+  - property: "autoApprove"
+    value: true
+  - property: "containsPii"
+    value: false
+  - property: "contractServer"
+    value: "production"
+  - property: "environment"
+    value: "prod"
+support:
+- channel: "#data-product-clearance-optimizer"
+  url: "https://acme.slack.com/channels/data-product-clearance-optimizer"
+  description: "Ask the Controlling team about clearance discount logic, margin guardrails or custom clearance criteria."
+  tool: "slack"
+  scope: "interactive"
+authoritativeDefinitions:
+- type: "semantics"
+  url: "http://www.entropy-data.com/ns/main/Article"
+customProperties:
+- property: "icon"
+  value: "snowflake"
+- property: "visibility"
+  value: "private"
+- property: "platformRole"
+  value: "dp_clearance_optimizer_role"
+- property: "type"
+  value: "consumer-aligned"
+- property: "riskAssessment"
+  value: "low risk"
+- property: "dataResidency"
+  value: "EU"
+- property: "keywords"
+  value: "clearance, discount, price reduction, dead stock, slow movers, price optimization, margin, inventory clearance, controlling"
+- property: "aiInstructions"
+  value: >-
+    The Shelf Warmer Clearance Optimizer recommends how deeply to discount slow-moving
+    articles to sell them off while protecting margin. It is built entirely from Snowflake
+    inputs: shelf-warmers (slow movers), prices history and article master data. The
+    output table is DP_CLEARANCE_OPTIMIZER.OP_CLEARANCE_RECOMMENDATIONS_V1.CLEARANCE_RECOMMENDATIONS.
+    Key columns: SKU, RECOMMENDED_DISCOUNT_PCT (0-100), RECOMMENDED_PRICE, CLEARANCE_TIER
+    (NONE/LIGHT/MODERATE/AGGRESSIVE/CLEARANCE) and URGENCY_SCORE (0-100). Higher
+    DAYS_SINCE_LAST_SALE drives a higher urgency score and a deeper discount.
+- property: "aiExamples"
+  value: |
+    Q: Which SKUs should we clear most aggressively?
+    SELECT SKU, ARTICLE_NAME, RECOMMENDED_DISCOUNT_PCT, URGENCY_SCORE FROM DP_CLEARANCE_OPTIMIZER.OP_CLEARANCE_RECOMMENDATIONS_V1.CLEARANCE_RECOMMENDATIONS WHERE CLEARANCE_TIER = 'CLEARANCE' ORDER BY URGENCY_SCORE DESC;
+
+    Q: What is the average recommended discount by brand?
+    SELECT BRAND_NAME, AVG(RECOMMENDED_DISCOUNT_PCT) AS avg_discount_pct FROM DP_CLEARANCE_OPTIMIZER.OP_CLEARANCE_RECOMMENDATIONS_V1.CLEARANCE_RECOMMENDATIONS GROUP BY BRAND_NAME ORDER BY avg_discount_pct DESC;
