@@ -21,6 +21,8 @@
 #   platform : the `dataProductBuilder` customProperty (initial ODPS re-published),
 #              every access agreement of this consumer data product, and every
 #              OpenLineage event emitted for it (needs an org-scoped API key)
+#   connection : the entropy-data CLI's default connection (removed last, after
+#                the platform revert that depends on it)
 #   profile  : the `shelf_warmer_clearance_optimizer` dbt profile in ~/.dbt/profiles.yml
 #   memory   : ~/.claude/projects/<this-repo-slug>/
 #
@@ -82,7 +84,7 @@ resolve_cli() {
 }
 
 # ============================================================================
-echo "==> 1/5  Drop Snowflake database ${DATABASE}"
+echo "==> 1/6  Drop Snowflake database ${DATABASE}"
 # Credentials from the implement profile, falling back to the shelf-warmers
 # profile (same demo account / role). while-read keeps macOS bash 3.2 happy.
 read -r ACCOUNT SF_USER SF_PASSWORD SF_ROLE SF_WAREHOUSE < <(
@@ -112,7 +114,7 @@ fi
 
 # ============================================================================
 echo
-echo "==> 2/5  Revert platform state (un-stamp data product, remove access agreements, delete lineage)"
+echo "==> 2/6  Revert platform state (un-stamp data product, remove access agreements, delete lineage)"
 ED="$(resolve_cli entropy-data)"
 if [[ -z "$ED" ]]; then
   echo "    entropy-data CLI not available — skipping platform revert."
@@ -178,7 +180,27 @@ fi
 
 # ============================================================================
 echo
-echo "==> 3/5  Remove generated local files"
+echo "==> 3/6  Remove the entropy-data CLI connection"
+# Removed AFTER the platform revert above, which depends on this connection.
+# `connection list` has no machine-readable output, but `connection get` does;
+# resolve the default connection's name from there and remove it.
+if [[ -z "$ED" ]]; then
+  echo "    entropy-data CLI not available — skipping connection removal."
+else
+  CONN_NAME="$($ED connection get -o json 2>/dev/null | jq -r '.name // empty' 2>/dev/null || true)"
+  if [[ -z "$CONN_NAME" ]]; then
+    echo "    No entropy-data connection configured — nothing to remove."
+  elif confirm "    Remove entropy-data connection '${CONN_NAME}'?"; then
+    run $ED connection remove "$CONN_NAME"
+    echo "    Removed connection '${CONN_NAME}'."
+  else
+    echo "    Skipped connection removal."
+  fi
+fi
+
+# ============================================================================
+echo
+echo "==> 4/6  Remove generated local files"
 # Restore the ODPS to its initial name if the implement skill renamed it.
 if [[ -f "$IMPLEMENT_ODPS_FILE" && ! -f "$ODPS_FILE" ]]; then
   echo "    Restoring ${ODPS_FILE} (from ${IMPLEMENT_ODPS_FILE})"
@@ -197,7 +219,7 @@ done
 
 # ============================================================================
 echo
-echo "==> 4/5  Remove the '${DBT_PROFILE}' dbt profile from ~/.dbt/profiles.yml"
+echo "==> 5/6  Remove the '${DBT_PROFILE}' dbt profile from ~/.dbt/profiles.yml"
 PROFILES="$HOME/.dbt/profiles.yml"
 if [[ -f "$PROFILES" ]] && python3 -c "import sys,yaml,pathlib; sys.exit(0 if '$DBT_PROFILE' in (yaml.safe_load(pathlib.Path('$PROFILES').read_text()) or {}) else 1)"; then
   if confirm "    Remove profile '${DBT_PROFILE}'?"; then
@@ -222,7 +244,7 @@ fi
 
 # ============================================================================
 echo
-echo "==> 5/5  Delete this project's Claude Code memory directory"
+echo "==> 6/6  Delete this project's Claude Code memory directory"
 PROJECT_SLUG="$(printf '%s' "$DIR" | tr '/_' '--')"
 MEMORY_DIR="$HOME/.claude/projects/$PROJECT_SLUG"
 if [[ ! -d "$MEMORY_DIR" ]]; then
