@@ -29,7 +29,7 @@ schema:
         - "SKU-100345"
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/sku
+          url: http://www.entropy-data.com/ns/main/sku
     - name: ARTICLE_NAME
       description: Human-readable article name.
       logicalType: string
@@ -38,7 +38,7 @@ schema:
         - "Merino Wool Scarf"
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/product.title
+          url: http://www.entropy-data.com/ns/main/product.title
     - name: BRAND_NAME
       description: Brand of the article.
       logicalType: string
@@ -47,7 +47,7 @@ schema:
         - "NordicKnit"
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/product.brand
+          url: http://www.entropy-data.com/ns/main/product.brand
     - name: COLOR
       description: Article color.
       logicalType: string
@@ -56,7 +56,7 @@ schema:
         - "Charcoal"
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/article.color
+          url: http://www.entropy-data.com/ns/main/article.color
     - name: LAST_SALE_TIMESTAMP
       description: Timestamp of the most recent recorded sale. NULL if never sold.
       logicalType: timestamp
@@ -77,7 +77,7 @@ schema:
         - 49.90
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/article.list-price
+          url: http://www.entropy-data.com/ns/main/article.list-price
     - name: CURRENT_EFFECTIVE_PRICE
       description: Current actual selling price after existing discounts.
       logicalType: number
@@ -92,7 +92,7 @@ schema:
         - "EUR"
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/order.currency
+          url: http://www.entropy-data.com/ns/main/order.currency
     - name: RECOMMENDED_DISCOUNT_PCT
       description: Recommended discount depth off the current effective price, as a percentage (0-100).
       logicalType: number
@@ -132,7 +132,7 @@ schema:
         - "2026-06-22T06:05:23Z"
       authoritativeDefinitions:
         - type: semantics
-          url: https://demo.entropy-data.com/demo106498185623/semantics/main/processed_timestamp
+          url: http://www.entropy-data.com/ns/main/processed_timestamp
 
 team:
   name: controlling-team
